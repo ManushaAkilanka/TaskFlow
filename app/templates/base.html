@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}TaskFlow{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-title-wrap">
+          <span class="brand-name">TaskFlow</span>
+          <span class="brand-subtitle">Developer Edition</span>
+        </div>
+      </div>
+
+      <!-- New Task Action -->
+      <button type="button" class="btn-new-task" onclick="openNewTaskModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>New Task</span>
+      </button>
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="{{ url_for('main.tasks') }}" class="nav-link {% if request.endpoint == 'main.tasks' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          <span>Tasks</span>
+        </a>
+
+        <a href="{{ url_for('main.archive') }}" class="nav-link {% if request.endpoint == 'main.archive' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="21 8 21 21 3 21 3 8"></polyline>
+            <rect x="1" y="3" width="22" height="5"></rect>
+            <line x1="10" y1="12" x2="14" y2="12"></line>
+          </svg>
+          <span>Archive</span>
+        </a>
+
+        <a href="{{ url_for('main.settings') }}" class="nav-link {% if request.endpoint == 'main.settings' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Bottom -->
+      <div class="sidebar-footer">
+        <a href="javascript:void(0)" onclick="alert('TaskFlow Developer Edition — Pair Programming & Productivity System')" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Support</span>
+        </a>
+
+        <form action="{{ url_for('auth.logout') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="nav-link btn-logout-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Log out</span>
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="app-main">
+      <!-- Topbar Header -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          <span>{% block header_label %}TaskFlow{% endblock %}</span>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Search Box -->
+          <form action="{{ url_for('main.tasks') }}" method="GET" class="search-box" id="topSearchForm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              name="q" 
+              id="topSearchInput" 
+              class="search-input" 
+              placeholder="Search tasks, tags..." 
+              value="{{ request.args.get('q', '') }}"
+            >
+            <span class="search-shortcut">⌘ K</span>
+          </form>
+
+          <!-- Notifications Icon -->
+          <button type="button" class="topbar-icon-btn" title="Notifications" onclick="alert('No unread notifications.')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </button>
+
+          <!-- Help Icon -->
+          <button type="button" class="topbar-icon-btn" title="Help" onclick="alert('TaskFlow Documentation: Use sidebar to switch between Dashboard, Tasks, Archive, and Settings.')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </button>
+
+          <!-- User Avatar -->
+          <a href="{{ url_for('main.settings') }}" class="topbar-avatar" title="{{ current_user.full_name }} ({{ current_user.email }})">
+            {% if current_user.avatar %}
+              <img src="{{ current_user.avatar }}" alt="{{ current_user.full_name }}">
+            {% else %}
+              <span>{{ current_user.full_name[:2].upper() if current_user.full_name else 'TF' }}</span>
+            {% endif %}
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main class="page-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages-wrap">
+              {% for category, message in messages %}
+                <div class="flash-alert alert-{{ 'error' if category == 'error' else ('success' if category == 'success' else 'info') }}">
+                  <span>{{ message }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- Global New Task Modal -->
+  <div id="newTaskModal" class="modal-overlay" onclick="handleModalBackdropClick(event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Task</h3>
+        <button type="button" class="modal-close-btn" onclick="closeNewTaskModal()">&times;</button>
+      </div>
+
+      <form action="{{ url_for('main.create_task') }}" method="POST" class="modal-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="modal-form-group">
+          <label for="modalTaskTitle" class="modal-label">Task Title *</label>
+          <input 
+            type="text" 
+            id="modalTaskTitle" 
+            name="title" 
+            class="modal-input" 
+            placeholder="e.g. Implement OAuth2 Authentication Flow" 
+            required 
+            autofocus
+          >
+        </div>
+
+        <div class="modal-form-group">
+          <label for="modalTaskDescription" class="modal-label">Description</label>
+          <textarea 
+            id="modalTaskDescription" 
+            name="description" 
+            class="modal-textarea" 
+            placeholder="Detailed notes or acceptance criteria..."
+          ></textarea>
+        </div>
+
+        <div class="modal-row-2">
+          <div class="modal-form-group">
+            <label for="modalTaskCategory" class="modal-label">Category</label>
+            <select id="modalTaskCategory" name="category_id" class="modal-select">
+              <option value="">No Category</option>
+              {% for cat in current_user.categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="modal-form-group">
+            <label for="modalTaskPriority" class="modal-label">Priority</label>
+            <select id="modalTaskPriority" name="priority" class="modal-select">
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label for="modalTaskDueDate" class="modal-label">Due Date</label>
+          <input type="date" id="modalTaskDueDate" name="due_date" class="modal-input">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" onclick="closeNewTaskModal()">Cancel</button>
+          <button type="submit" class="btn-modal-submit">Create Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Global Application Scripts -->
+  <script>
+    function openNewTaskModal() {
+      const modal = document.getElementById('newTaskModal');
+      if (modal) {
+        modal.classList.add('active');
+        const titleInput = document.getElementById('modalTaskTitle');
+        if (titleInput) titleInput.focus();
+      }
+    }
+
+    function closeNewTaskModal() {
+      const modal = document.getElementById('newTaskModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function handleModalBackdropClick(e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        closeNewTaskModal();
+      }
+    }
+
+    // Keyboard shortcut (⌘K or Ctrl+K for search)
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('topSearchInput');
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      }
+      if (e.key === 'Escape') {
+        closeNewTaskModal();
+      }
+    });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}TaskFlow: Tasks List{% endblock %}
+{% block header_label %}TaskFlow: Tasks List{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-wrap">
+    <h1 class="page-title">All Tasks</h1>
+    <p class="page-subtitle">Manage and organize your pending work.</p>
+  </div>
+
+  <!-- Top Right Quick Filter Pills -->
+  <div class="filter-pills-row">
+    <a href="{{ url_for('main.tasks') }}" class="pill-btn {% if not current_quick and not selected_categories and not selected_priorities and not search_query %}active{% endif %}">
+      All
+    </a>
+    <a href="{{ url_for('main.tasks', quick='today') }}" class="pill-btn {% if current_quick == 'today' %}active{% endif %}">
+      Today
+    </a>
+    <a href="{{ url_for('main.tasks', quick='high') }}" class="pill-btn pill-btn-danger {% if current_quick == 'high' %}active{% endif %}">
+      ! High Priority
+    </a>
+  </div>
+</div>
+
+<!-- Grid Layout: Left Filters + Right Tasks List -->
+<div class="tasks-layout-grid">
+  <!-- Left Column: Filters Card -->
+  <aside class="filters-card">
+    <h2 class="filters-heading">Filters</h2>
+
+    <form id="filterForm" action="{{ url_for('main.tasks') }}" method="GET">
+      {% if search_query %}
+        <input type="hidden" name="q" value="{{ search_query }}">
+      {% endif %}
+      {% if current_quick %}
+        <input type="hidden" name="quick" value="{{ current_quick }}">
+      {% endif %}
+
+      <!-- Category Filter Group -->
+      <div class="filter-group">
+        <h3 class="filter-group-title">Category</h3>
+        {% for cat in categories %}
+          <label class="filter-option">
+            <div class="filter-label-wrap">
+              <input 
+                type="checkbox" 
+                name="category" 
+                value="{{ cat.id }}" 
+                class="filter-checkbox"
+                {% if cat.id|string in selected_categories %}checked{% endif %}
+                onchange="document.getElementById('filterForm').submit()"
+              >
+              <span>{{ cat.name }}</span>
+            </div>
+            <span class="filter-count">{{ cat.tasks.filter_by(archived_at=None).count() }}</span>
+          </label>
+        {% endfor %}
+      </div>
+
+      <!-- Priority Filter Group -->
+      <div class="filter-group">
+        <h3 class="filter-group-title">Priority</h3>
+        <label class="filter-option">
+          <div class="filter-label-wrap">
+            <input 
+              type="checkbox" 
+              name="priority" 
+              value="high" 
+              class="filter-checkbox"
+              {% if 'high' in selected_priorities %}checked{% endif %}
+              onchange="document.getElementById('filterForm').submit()"
+            >
+            <span class="dot-indicator dot-high"></span>
+            <span>High</span>
+          </div>
+        </label>
+
+        <label class="filter-option">
+          <div class="filter-label-wrap">
+            <input 
+              type="checkbox" 
+              name="priority" 
+              value="medium" 
+              class="filter-checkbox"
+              {% if 'medium' in selected_priorities %}checked{% endif %}
+              onchange="document.getElementById('filterForm').submit()"
+            >
+            <span class="dot-indicator dot-medium"></span>
+            <span>Medium</span>
+          </div>
+        </label>
+
+        <label class="filter-option">
+          <div class="filter-label-wrap">
+            <input 
+              type="checkbox" 
+              name="priority" 
+              value="low" 
+              class="filter-checkbox"
+              {% if 'low' in selected_priorities %}checked{% endif %}
+              onchange="document.getElementById('filterForm').submit()"
+            >
+            <span class="dot-indicator dot-low"></span>
+            <span>Low</span>
+          </div>
+        </label>
+      </div>
+
+      <!-- Clear Filters Button -->
+      <a href="{{ url_for('main.tasks') }}" class="btn-clear-filters" style="display:flex; align-items:center; justify-content:center; text-decoration:none;">
+        Clear Filters
+      </a>
+    </form>
+  </aside>
+
+  <!-- Right Column: Task List Stack -->
+  <section class="tasks-content">
+    {% if tasks %}
+      <div class="tasks-stack">
+        {% for task in tasks %}
+          <div class="task-card {% if task.status == 'completed' %}task-completed{% endif %}">
+            <div class="task-left-content">
+              <!-- Toggle Complete Checkbox Form -->
+              <form action="{{ url_for('main.uncomplete_task', task_id=task.id) if task.status == 'completed' else url_for('main.complete_task', task_id=task.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-toggle-complete" title="{{ 'Mark Incomplete' if task.status == 'completed' else 'Mark Completed' }}">
+                  <div class="circle-check {% if task.status == 'completed' %}checked{% endif %}">
+                    {% if task.status == 'completed' %}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    {% endif %}
+                  </div>
+                </button>
+              </form>
+
+              <div class="task-text-group">
+                <div class="task-title-row">
+                  <span class="task-title">{{ task.title }}</span>
+                </div>
+                {% if task.description %}
+                  <p class="task-description">{{ task.description }}</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="task-right-meta">
+              <!-- Priority Badge -->
+              <span class="badge-priority badge-priority-{{ task.priority }}">
+                <span class="dot-indicator dot-{{ task.priority }}"></span>
+                {{ task.priority }}
+              </span>
+
+              <!-- Category Badge -->
+              {% if task.category %}
+                <span class="badge-category">{{ task.category.name }}</span>
+              {% endif %}
+
+              <!-- Due Date -->
+              {% if task.due_date %}
+                <span class="task-due-date">
+                  {% set today = now_date %}
+                  {% if task.due_date == today %}
+                    Today
+                  {% elif task.due_date == today + delta_day %}
+                    Tomorrow
+                  {% else %}
+                    {{ task.due_date.strftime('%b %d') }}
+                  {% endif %}
+                </span>
+              {% endif %}
+
+              <!-- Archive Action -->
+              <form action="{{ url_for('main.archive_task', task_id=task.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="task-action-btn" title="Archive Task">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                    <rect x="1" y="3" width="22" height="5"></rect>
+                    <line x1="10" y1="12" x2="14" y2="12"></line>
+                  </svg>
+                </button>
+              </form>
+
+              <!-- Delete Action -->
+              <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Permanently delete this task?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="task-action-btn" title="Delete Task" style="color: #ef4444;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state-card">
+        <div class="empty-state-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <h3 class="empty-state-title">No tasks found</h3>
+        <p class="empty-state-subtitle">No tasks match your current filter selection or search query.</p>
+        <div style="display:flex; gap:10px;">
+          <a href="{{ url_for('main.tasks') }}" class="btn-modal-cancel" style="text-decoration:none;">Clear Filters</a>
+          <button type="button" class="btn-new-task" style="width:auto; padding:0 18px; margin:0;" onclick="openNewTaskModal()">+ New Task</button>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

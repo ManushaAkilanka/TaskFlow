@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}TaskFlow: Server Error{% endblock %}
+{% block header_label %}TaskFlow: 500 Error{% endblock %}
+
+{% block content %}
+<div class="empty-state-card" style="margin-top: 40px;">
+  <div class="empty-state-icon" style="background: #fee2e2; color: #dc2626;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+  </div>
+  <h1 class="empty-state-title" style="font-size: 20px;">500 &mdash; Internal Server Error</h1>
+  <p class="empty-state-subtitle">An unexpected error occurred. Please try again or return to the dashboard.</p>
+  <a href="{{ url_for('main.dashboard') }}" class="btn-new-task" style="width:auto; padding:0 20px; text-decoration:none; margin-top:8px;">
+    Return to Dashboard
+  </a>
+</div>
+{% endblock %}

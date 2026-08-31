@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}TaskFlow: Archive{% endblock %}
+{% block header_label %}TaskFlow: Archive{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-wrap">
+    <h1 class="page-title">Archive</h1>
+    <p class="page-subtitle">Review or restore completed and dismissed tasks.</p>
+  </div>
+
+  <!-- Clear Archive Button -->
+  {% if total_archived_count > 0 %}
+    <form action="{{ url_for('main.clear_archive') }}" method="POST" onsubmit="return confirm('Permanently clear all archived tasks?');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn-clear-archive">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        <span>Clear Archive</span>
+      </button>
+    </form>
+  {% endif %}
+</div>
+
+<!-- Search & Filter Bar -->
+<form action="{{ url_for('main.archive') }}" method="GET" class="archive-search-bar">
+  <div class="archive-search-left">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input 
+      type="text" 
+      name="q" 
+      class="archive-search-input" 
+      placeholder="Search archived tasks..." 
+      value="{{ search_query or '' }}"
+    >
+  </div>
+  <button type="submit" class="btn-archive-filter">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+    </svg>
+    <span>Filter</span>
+  </button>
+</form>
+
+<!-- Grouped Archive Sections -->
+{% if total_archived_count > 0 %}
+
+  <!-- Today Group -->
+  {% if groups.today %}
+    <div class="archive-group">
+      <h2 class="archive-group-title">Today</h2>
+      <div class="tasks-stack">
+        {% for item in groups.today %}
+          {% set task = item.task %}
+          <div class="task-card archive-card">
+            <div class="task-left-content">
+              <div class="circle-check checked" style="background:#475569; border-color:#475569;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="task-text-group">
+                <div class="task-title-row">
+                  <span class="task-title">{{ task.title }}</span>
+                  <span class="task-code-meta">DOC-{{ task.id }}</span>
+                  {% if task.priority == 'high' %}
+                    <span class="badge-priority badge-priority-high">High Priority</span>
+                  {% endif %}
+                </div>
+                <div class="archive-time-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>Completed {{ item.time_ago }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="task-right-meta">
+              <!-- Restore Action -->
+              <form action="{{ url_for('main.restore_task', task_id=task.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-restore-task" title="Restore task to active tasks">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                  </svg>
+                  <span>Restore</span>
+                </button>
+              </form>
+
+              <!-- Permanent Delete Action -->
+              <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Permanently delete this archived task?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="task-action-btn" title="Delete Task" style="color: #ef4444;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Yesterday Group -->
+  {% if groups.yesterday %}
+    <div class="archive-group">
+      <h2 class="archive-group-title">Yesterday</h2>
+      <div class="tasks-stack">
+        {% for item in groups.yesterday %}
+          {% set task = item.task %}
+          <div class="task-card archive-card">
+            <div class="task-left-content">
+              <div class="circle-dismissed">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+              </div>
+              <div class="task-text-group">
+                <div class="task-title-row">
+                  <span class="task-title">{{ task.title }}</span>
+                  <span class="task-code-meta">TECH-{{ task.id }}</span>
+                </div>
+                <div class="archive-time-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>Dismissed yesterday</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="task-right-meta">
+              <!-- Restore Action -->
+              <form action="{{ url_for('main.restore_task', task_id=task.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-restore-task" title="Restore task to active tasks">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                  </svg>
+                  <span>Restore</span>
+                </button>
+              </form>
+
+              <!-- Permanent Delete Action -->
+              <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Permanently delete this archived task?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="task-action-btn" title="Delete Task" style="color: #ef4444;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Older Group -->
+  {% if groups.older %}
+    <div class="archive-group">
+      <h2 class="archive-group-title">Older</h2>
+      <div class="tasks-stack">
+        {% for item in groups.older %}
+          {% set task = item.task %}
+          <div class="task-card archive-card">
+            <div class="task-left-content">
+              <div class="circle-check checked" style="background:#64748b; border-color:#64748b;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="task-text-group">
+                <div class="task-title-row">
+                  <span class="task-title">{{ task.title }}</span>
+                  <span class="task-code-meta">ARCH-{{ task.id }}</span>
+                </div>
+                <div class="archive-time-badge">
+                  <span>Archived {{ task.archived_at.strftime('%b %d, %Y') }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="task-right-meta">
+              <!-- Restore Action -->
+              <form action="{{ url_for('main.restore_task', task_id=task.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-restore-task" title="Restore task to active tasks">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                  </svg>
+                  <span>Restore</span>
+                </button>
+              </form>
+
+              <!-- Permanent Delete Action -->
+              <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Permanently delete this archived task?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="task-action-btn" title="Delete Task" style="color: #ef4444;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+{% else %}
+  <div class="empty-state-card">
+    <div class="empty-state-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="21 8 21 21 3 21 3 8"></polyline>
+        <rect x="1" y="3" width="22" height="5"></rect>
+        <line x1="10" y1="12" x2="14" y2="12"></line>
+      </svg>
+    </div>
+    <h3 class="empty-state-title">No archived tasks</h3>
+    <p class="empty-state-subtitle">Archived tasks will appear here grouped by completion or dismissal date.</p>
+    <a href="{{ url_for('main.tasks') }}" class="btn-new-task" style="width:auto; padding:0 20px; text-decoration:none;">
+      Back to Active Tasks
+    </a>
+  </div>
+{% endif %}
+
+{% endblock %}

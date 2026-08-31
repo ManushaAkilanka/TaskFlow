@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}TaskFlow: Page Not Found{% endblock %}
+{% block header_label %}TaskFlow: 404 Error{% endblock %}
+
+{% block content %}
+<div class="empty-state-card" style="margin-top: 40px;">
+  <div class="empty-state-icon" style="background: #fee2e2; color: #dc2626;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+  </div>
+  <h1 class="empty-state-title" style="font-size: 20px;">404 &mdash; Page Not Found</h1>
+  <p class="empty-state-subtitle">The requested task, resource, or page does not exist or has been removed.</p>
+  <div style="display:flex; gap:12px; margin-top:8px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-new-task" style="width:auto; padding:0 20px; text-decoration:none;">
+      Go to Dashboard
+    </a>
+    <a href="{{ url_for('main.tasks') }}" class="btn-modal-cancel" style="text-decoration:none;">
+      View Tasks
+    </a>
+  </div>
+</div>
+{% endblock %}

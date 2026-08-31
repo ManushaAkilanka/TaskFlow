@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}TaskFlow: Productivity View{% endblock %}
+{% block header_label %}TaskFlow: Productivity View{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-wrap">
+    <h1 class="page-title">Productivity Overview</h1>
+    <p class="page-subtitle">Track your task execution, velocity, and priority allocation.</p>
+  </div>
+  <div class="filter-pills-row">
+    <a href="{{ url_for('main.tasks') }}" class="pill-btn">View All Tasks</a>
+    <button type="button" class="pill-btn active" onclick="openNewTaskModal()">+ New Task</button>
+  </div>
+</div>
+
+<!-- Statistics Cards Grid -->
+<div class="dashboard-stats-grid">
+  <!-- Metric 1: Completion Rate -->
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-card-title">Completion Rate</span>
+      <div class="stat-card-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </div>
+    </div>
+    <div class="stat-card-body">
+      <span class="stat-number">{{ completion_rate }}%</span>
+    </div>
+    <span class="stat-sublabel">{{ completed_count }} completed &bull; {{ remaining_count }} remaining</span>
+    <div class="stat-progress-bar">
+      <div class="stat-progress-fill" style="width: {{ completion_rate }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Metric 2: Active Tasks Overview -->
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-card-title">Active Tasks</span>
+      <div class="stat-card-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      </div>
+    </div>
+    <div class="stat-card-body">
+      <span class="stat-number">{{ remaining_count }}</span>
+      <span class="stat-sublabel">tasks pending</span>
+    </div>
+    <span class="stat-sublabel">
+      <span style="color: var(--priority-high-text); font-weight:600;">{{ high_priority_count }} high priority</span> &bull; {{ medium_priority_count }} medium
+    </span>
+  </div>
+
+  <!-- Metric 3: Categories Breakdown -->
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-card-title">Categories</span>
+      <div class="stat-card-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+    </div>
+    <div class="stat-card-body" style="flex-direction: column; gap: 4px; align-items: flex-start;">
+      {% for cat in category_stats %}
+        <div style="display:flex; justify-content:space-between; width:100%; font-size:12px;">
+          <span style="color: var(--text-secondary);">
+            <span class="dot-indicator" style="background-color: {{ cat.color_code }}; margin-right:4px;"></span>
+            {{ cat.name }}
+          </span>
+          <span style="font-weight:600; color:var(--brand-navy); font-family:var(--font-family-mono);">{{ cat.count }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Agenda / Upcoming Section -->
+<div style="margin-top: 32px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--brand-navy);">Pending Agenda</h2>
+    <a href="{{ url_for('main.tasks') }}" style="font-size: 12.5px; color: var(--primary-blue); text-decoration:none; font-weight:500;">
+      View all in Tasks &rarr;
+    </a>
+  </div>
+
+  {% if tasks %}
+    <div class="tasks-stack">
+      {% for task in tasks %}
+        <div class="task-card {% if task.status == 'completed' %}task-completed{% endif %}">
+          <div class="task-left-content">
+            <!-- Toggle Complete Form -->
+            <form action="{{ url_for('main.uncomplete_task', task_id=task.id) if task.status == 'completed' else url_for('main.complete_task', task_id=task.id) }}" method="POST">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-toggle-complete" title="{{ 'Mark Todo' if task.status == 'completed' else 'Mark Completed' }}">
+                <div class="circle-check {% if task.status == 'completed' %}checked{% endif %}">
+                  {% if task.status == 'completed' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  {% endif %}
+                </div>
+              </button>
+            </form>
+
+            <div class="task-text-group">
+              <div class="task-title-row">
+                <span class="task-title">{{ task.title }}</span>
+              </div>
+              {% if task.description %}
+                <p class="task-description">{{ task.description }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="task-right-meta">
+            <!-- Priority Badge -->
+            <span class="badge-priority badge-priority-{{ task.priority }}">
+              <span class="dot-indicator dot-{{ task.priority }}"></span>
+              {{ task.priority }}
+            </span>
+
+            <!-- Category Badge -->
+            {% if task.category %}
+              <span class="badge-category">{{ task.category.name }}</span>
+            {% endif %}
+
+            <!-- Due Date -->
+            {% if task.due_date %}
+              <span class="task-due-date">{{ task.due_date.strftime('%b %d') }}</span>
+            {% endif %}
+
+            <!-- Archive Action -->
+            <form action="{{ url_for('main.archive_task', task_id=task.id) }}" method="POST" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="task-action-btn" title="Archive Task">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                  <rect x="1" y="3" width="22" height="5"></rect>
+                  <line x1="10" y1="12" x2="14" y2="12"></line>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state-card">
+      <div class="empty-state-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h3 class="empty-state-title">No pending tasks!</h3>
+      <p class="empty-state-subtitle">You are all caught up. Create a new task to organize your upcoming development work.</p>
+      <button type="button" class="btn-new-task" style="width:auto; padding:0 20px;" onclick="openNewTaskModal()">
+        + Create Task
+      </button>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
