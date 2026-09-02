@@ -2,10 +2,18 @@
 
 A modern, full-featured personal task management web application built with Python and Flask. TaskFlow features secure multi-user authentication, email verification, password recovery, OAuth integration, task and category management, priority tracking, archiving, and a clean responsive dashboard — with dual database support (SQLite locally and PostgreSQL in production).
 
+## 🚀 Live Demo
+
+**Try TaskFlow online:**  
+https://manushaakilanka.pythonanywhere.com/
+
+> **Note:** The live application may require account registration and email verification before accessing authenticated features.
+
 ---
 
 ## Table of Contents
 
+- [Live Demo](#-live-demo)
 - [Overview](#overview)
 - [Features](#features)
 - [Technology Stack](#technology-stack)
@@ -297,6 +305,16 @@ python test_phase7_auth_features.py
 # Email Delivery Diagnostics & Multi-User Isolation
 python test_email_verification_diagnostics.py
 ```
+
+---
+
+## Live Deployment
+
+TaskFlow is currently hosted and publicly accessible through **PythonAnywhere**.
+
+**Live application:** https://manushaakilanka.pythonanywhere.com/
+
+The repository also contains Render deployment configuration for future cloud deployment.
 
 ---
 
